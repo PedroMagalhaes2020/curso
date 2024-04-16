@@ -1,0 +1,153 @@
+<p style="text-align:center">
+    <a href="https://skills.network/?utm_medium=Exinfluencer&utm_source=Exinfluencer&utm_content=000026UJ&utm_term=10006555&utm_id=NA-SkillsNetwork-Channel-SkillsNetworkCoursesIBMDeveloperSkillsNetworkST0151ENSkillsNetwork20531532-2022-01-01" target="_blank">
+    <img src="https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/assets/logos/SN_web_lightmode.png" width="200" alt="Skills Network Logo"  />
+    </a>
+</p>
+
+
+#### Import the required libraries we need for the lab.
+
+import piplite
+await piplite.install(['numpy'],['pandas'])
+await piplite.install(['seaborn'])
+import pandas as pd
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as pyplot
+import scipy.stats
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+#### Read the dataset in the csv file from the URL
+
+from js import fetch
+import io
+
+URL = 'https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-ST0151EN-SkillsNetwork/labs/boston_housing.csv'
+resp = await fetch(URL)
+boston_url = io.BytesIO((await resp.arrayBuffer()).to_py())
+boston_df=pd.read_csv(boston_url)
+#### Add your code below following the instructions given in the course to complete the peer graded assignment
+
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Boxplot for MEDV
+plt.figure(figsize=(8, 6))
+sns.boxplot(x='MEDV', data=boston_df)
+plt.title('Boxplot of Median Value of Owner-Occupied Homes (MEDV)')
+plt.xlabel('Median Value of Homes ($1000s)')
+plt.show()
+
+
+# Bar plot for CHAS
+plt.figure(figsize=(6, 4))
+sns.countplot(x='CHAS', data=boston_df)
+plt.title('Bar Plot of Houses Bounded by Charles River (CHAS)')
+plt.xlabel('Bounded by Charles River (1 = Yes, 0 = No)')
+plt.ylabel('Frequency')
+plt.show()
+
+
+# Discretize AGE into three groups
+boston_df['AGE_group'] = pd.cut(boston_df['AGE'], bins=[0, 35, 70, boston_df['AGE'].max()], labels=['35 years and younger', 'Between 35 and 70 years', '70 years and older'])
+
+# Boxplot for MEDV vs AGE group
+plt.figure(figsize=(10, 6))
+sns.boxplot(x='AGE_group', y='MEDV', data=boston_df)
+plt.title('Boxplot of Median Value of Owner-Occupied Homes (MEDV) vs AGE Group')
+plt.xlabel('Age Group')
+plt.ylabel('Median Value of Homes ($1000s)')
+plt.show()
+
+
+# Scatter plot for NOX vs INDUS
+plt.figure(figsize=(8, 6))
+plt.scatter(boston_df['NOX'], boston_df['INDUS'], alpha=0.6)
+plt.title('Scatter Plot of Nitric Oxide Concentrations (NOX) vs Proportion of Non-Retail Business Acres (INDUS)')
+plt.xlabel('Nitric Oxide Concentrations (ppm)')
+plt.ylabel('Proportion of Non-Retail Business Acres')
+plt.show()
+
+
+# Histogram for PTRATIO
+plt.figure(figsize=(8, 6))
+plt.hist(boston_df['PTRATIO'], bins=10, edgecolor='black')
+plt.title('Histogram of Pupil to Teacher Ratio (PTRATIO)')
+plt.xlabel('Pupil to Teacher Ratio')
+plt.ylabel('Frequency')
+plt.show()
+import pandas as pd
+from scipy.stats import ttest_ind, f_oneway, pearsonr
+import statsmodels.api as sm
+# Question 1: Is there a significant difference in median value of houses bounded by the Charles river or not? (T-test for independent samples)
+
+# Subset the data for houses bounded and not bounded by the Charles river
+bounded = boston_df[boston_df['CHAS'] == 1]['MEDV']
+not_bounded = boston_df[boston_df['CHAS'] == 0]['MEDV']
+
+# Hypotheses
+# H0: There is no significant difference in median values of houses bounded by the Charles river and those not bounded by the river.
+# H1: There is a significant difference in median values of houses bounded by the Charles river and those not bounded by the river.
+
+# Perform the t-test
+t_stat, p_val = ttest_ind(bounded, not_bounded)
+
+# Conclusion
+alpha = 0.05
+if p_val < alpha:
+    print("Reject the null hypothesis. There is a significant difference in median values of houses bounded by the Charles river and those not bounded.")
+else:
+    print("Fail to reject the null hypothesis. There is no significant difference in median values of houses bounded by the Charles river and those not bounded.")
+
+# Question 2: Is there a difference in Median values of houses (MEDV) for each proportion of owner occupied units built prior to 1940 (AGE)? (ANOVA)
+
+# Hypotheses
+# H0: There is no difference in median values of houses (MEDV) across different age groups.
+# H1: There is a difference in median values of houses (MEDV) across different age groups.
+
+# Perform one-way ANOVA
+result = f_oneway(boston_df[boston_df['AGE'] <= 35]['MEDV'], boston_df[(boston_df['AGE'] > 35) & (boston_df['AGE'] <= 70)]['MEDV'], boston_df[boston_df['AGE'] > 70]['MEDV'])
+
+# Conclusion
+if result.pvalue < alpha:
+    print("Reject the null hypothesis. There is a difference in median values of houses across different age groups.")
+else:
+    print("Fail to reject the null hypothesis. There is no difference in median values of houses across different age groups.")
+
+# Question 3: Can we conclude that there is no relationship between Nitric oxide concentrations and proportion of non-retail business acres per town? (Pearson Correlation)
+
+# Hypotheses
+# H0: There is no relationship between Nitric oxide concentrations (NOX) and proportion of non-retail business acres per town (INDUS).
+# H1: There is a relationship between Nitric oxide concentrations (NOX) and proportion of non-retail business acres per town (INDUS).
+
+# Perform Pearson correlation
+corr_coef, p_val = pearsonr(boston_df['NOX'], boston_df['INDUS'])
+
+# Conclusion
+if p_val < alpha:
+    print("Reject the null hypothesis. There is a relationship between Nitric oxide concentrations and proportion of non-retail business acres per town.")
+else:
+    print("Fail to reject the null hypothesis. There is no relationship between Nitric oxide concentrations and proportion of non-retail business acres per town.")
+
+# Question 4: What is the impact of an additional weighted distance to the five Boston employment centres on the median value of owner occupied homes? (Regression analysis)
+
+# Hypotheses
+# H0: There is no impact of an additional weighted distance to the five Boston employment centres on the median value of owner-occupied homes.
+# H1: There is an impact of an additional weighted distance to the five Boston employment centres on the median value of owner-occupied homes.
+
+# Add constant to the independent variable
+X = sm.add_constant(boston_df['DIS'])
+y = boston_df['MEDV']
+
+# Fit the linear regression model
+model = sm.OLS(y, X).fit()
+
+# Get the regression summary
+print(model.summary())
+
+# Conclusion
+if model.pvalues['DIS'] < alpha:
+    print("Reject the null hypothesis. There is an impact of an additional weighted distance to the five Boston employment centres on the median value of owner-occupied homes.")
+else:
+    print("Fail to reject the null hypothesis. There is no impact of an additional weighted distance to the five Boston employment centres on the median value of owner-occupied homes.")
